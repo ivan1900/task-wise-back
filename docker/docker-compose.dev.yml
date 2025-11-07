@@ -1,0 +1,61 @@
+services:
+  # NestJS Application (Development)
+  app-dev:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.dev
+      args:
+        - HOST_UID=${HOST_UID}
+        - HOST_GID=${HOST_GID}
+    container_name: task-wise-app-dev
+    ports:
+      - '3000:3000'
+      - '9229:9229' # Debug port
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+    volumes:
+      - ..:/app
+      - /app/node_modules
+    restart: unless-stopped
+    networks:
+      - task-wise-network
+    command: npm run start:dev
+
+  # Uncomment and configure the following services as needed:
+
+  # PostgreSQL Database (example)
+  db:
+    image: postgres:15-alpine
+    container_name: task-wise-db-dev
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - '${POSTGRES_PORT}:${POSTGRES_PORT}'
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - task-wise-network
+
+  # Redis Cache (example)
+  redis:
+    image: redis:7-alpine
+    container_name: task-wise-redis-dev
+    ports:
+      - '${REDIS_PORT}:${REDIS_PORT}'
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    command: ['redis-server', '--requirepass', '${REDIS_PASSWORD}']
+    restart: unless-stopped
+    networks:
+      - task-wise-network
+
+networks:
+  task-wise-network:
+    driver: bridge
+# Uncomment if using database services
+volumes:
+  postgres_data_dev:

@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # NestJS Application
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: task-wise-app
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    restart: unless-stopped
+    networks:
+      - task-wise-network
+    # Uncomment the following lines if you add a database service
+    # depends_on:
+    #   - db
+    # volumes:
+    #   - ./logs:/app/logs  # Optional: for persistent logs
+
+  # Uncomment and configure the following services as needed:
+
+  # PostgreSQL Database (example)
+  # db:
+  #   image: postgres:15-alpine
+  #   container_name: task-wise-db
+  #   environment:
+  #     POSTGRES_DB: task-wise
+  #     POSTGRES_USER: task-wise_user
+  #     POSTGRES_PASSWORD: task-wise_password
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #     - ./init.sql:/docker-entrypoint-initdb.d/init.sql  # Optional: initialization script
+  #   restart: unless-stopped
+  #   networks:
+  #     - task-wise-network
+
+  # Redis Cache (example)
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: task-wise-redis
+  #   ports:
+  #     - "6379:6379"
+  #   restart: unless-stopped
+  #   networks:
+  #     - task-wise-network
+
+networks:
+  task-wise-network:
+    driver: bridge
+# Uncomment if using database services
+# volumes:
+#   postgres_data:
