@@ -8,24 +8,25 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model sessions {
-  id            Int       @id(map: "sessions_pk") @default(autoincrement())
-  user_id       Int
-  refresh_token String    @unique(map: "sessions_pk_2") @db.VarChar(1000)
-  created_at    DateTime? @default(now()) @db.Timestamp(6)
-  updated_at    DateTime? @default(now()) @db.Timestamp(6)
-  valid         Boolean   @default(true)
-
-  @@index([user_id], map: "sessions_user_id_index")
-}
-
-model users {
-  id         Int       @id @default(autoincrement())
+model app_user {
+  id         Int       @id(map: "users_pkey") @default(autoincrement())
   name       String    @db.VarChar(100)
-  email      String    @unique @db.VarChar(150)
+  email      String    @unique(map: "users_email_key") @db.VarChar(150)
   password   String    @db.VarChar(255)
   google_id  String?   @db.VarChar(255)
   is_active  Boolean?  @default(true)
   created_at DateTime? @default(now()) @db.Timestamp(6)
   updated_at DateTime? @default(now()) @db.Timestamp(6)
+  uuid       String    @db.Uuid
+}
+
+model session {
+  id            Int       @id(map: "session_pk_2") @default(autoincrement())
+  user_id       Int
+  refresh_token String    @unique(map: "session_pk") @db.VarChar(1000)
+  created_at    DateTime? @default(now()) @db.Timestamp(6)
+  updated_at    DateTime? @default(now()) @db.Timestamp(6)
+  valid         Boolean   @default(true)
+
+  @@index([user_id], map: "session_user_id_index")
 }
