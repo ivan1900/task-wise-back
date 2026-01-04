@@ -1,14 +1,17 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { UserFinder } from 'src/User/application/UserFinder.service';
 import GenerateJWT from '../domain/GenerateJTW.service';
 import AuthRepository from '../infraestructure/Auth.repository';
 import Session from '../domain/session';
+import { UserWasLoggedEvent } from 'src/Shared/domain/events/UserWasLogged.event';
+import { EventBus } from 'src/Shared/domain/EventBus';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userFinder: UserFinder,
     private readonly repository: AuthRepository,
+    @Inject(EventBus) private readonly eventBus: EventBus,
   ) {}
 
   async signIn(
@@ -36,6 +39,9 @@ export class AuthService {
       updatedAt: new Date(),
     });
     await this.repository.saveSession(newSession);
+
+    const event = new UserWasLoggedEvent(user.id.toString());
+    await this.eventBus.publish(event);
 
     return {
       access_token: accessToken,
