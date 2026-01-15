@@ -5,11 +5,13 @@ import AuthRepository from '../infraestructure/Auth.repository';
 import Session from '../domain/session';
 import { UserWasLoggedEvent } from 'src/Shared/domain/events/UserWasLogged.event';
 import { EventBus } from 'src/Shared/domain/EventBus';
+import { UserCreator } from 'src/User/application/UserCreator.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userFinder: UserFinder,
+    private readonly userCreator: UserCreator,
     private readonly repository: AuthRepository,
     @Inject(EventBus) private readonly eventBus: EventBus,
   ) {}
@@ -19,20 +21,42 @@ export class AuthService {
     password: string,
   ): Promise<{ access_token: string; refresh_token: string }> {
     const user = await this.userFinder.byEmail(email);
-    if (user?.password !== password) {
+    if (!user || user.password !== password) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const session = await this.repository.findSessionByUserId(user.id);
-    if (session) {
-      await this.repository.removeSessionsByUserId(user.id);
+    return this.generateTokensAndSession(user.id, user.email);
+  }
+
+  async validateGoogleUser(profile: {
+    email: string;
+    googleId: string;
+    name: string;
+  }): Promise<any> {
+    let user = await this.userFinder.byEmail(profile.email);
+
+    if (!user) {
+      user = (await this.userCreator.createSourceGoogle(profile)).toPrimitives();
     }
 
-    const accessToken = GenerateJWT.accessToken(user.id, user.email);
-    const refreshToken = GenerateJWT.refreshToken(user.id, user.email);
+    return user;
+  }
+
+  async login(user: any): Promise<{ access_token: string; refresh_token: string }> {
+    return this.generateTokensAndSession(Number(user.id), user.email);
+  }
+
+  private async generateTokensAndSession(userId: number, email: string) {
+    const session = await this.repository.findSessionByUserId(userId);
+    if (session) {
+      await this.repository.removeSessionsByUserId(userId);
+    }
+
+    const accessToken = GenerateJWT.accessToken(userId, email);
+    const refreshToken = GenerateJWT.refreshToken(userId, email);
     const newSession = Session.fromPrimitives({
       id: null,
-      userId: user.id,
+      userId: userId,
       refreshToken: refreshToken,
       valid: true,
       createdAt: new Date(),
@@ -40,7 +64,7 @@ export class AuthService {
     });
     await this.repository.saveSession(newSession);
 
-    const event = new UserWasLoggedEvent(user.id.toString());
+    const event = new UserWasLoggedEvent(userId.toString());
     await this.eventBus.publish(event);
 
     return {

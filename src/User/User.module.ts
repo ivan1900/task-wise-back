@@ -7,12 +7,13 @@ import { SharedModule } from 'src/Shared/Shared.module';
 import { ExampleHandler } from './application/ExampleHandler';
 import { UserWasLoggedEvent } from 'src/Shared/domain/events/UserWasLogged.event';
 import { EventBus } from 'src/Shared/domain/EventBus';
+import { UserCreator } from './application/UserCreator.service';
 
 @Module({
   imports: [DDBBModule, SharedModule],
   controllers: [UserController],
-  providers: [UserFinder, UserRepository],
-  exports: [UserFinder],
+  providers: [UserFinder, UserRepository, UserCreator],
+  exports: [UserFinder, UserCreator],
 })
 export class UserModule implements OnModuleInit {
   constructor(@Inject(EventBus) private readonly eventBus: EventBus) {}

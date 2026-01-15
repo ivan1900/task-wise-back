@@ -1,9 +1,10 @@
-import { Body, Controller, Logger, Post, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Logger, Post, UsePipes, ValidationPipe, Get, UseGuards, Req } from '@nestjs/common';
 import { SignInDto } from './application/dto/Signin.dto';
 import { ApiResponse } from 'src/Shared/application/dto/ApiResponse';
 import { AuthService } from './application/Auth.service';
 import { RefreshService } from './application/Refresh.service';
 import { RefreshTokenDto } from './application/dto/RefreshToken.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth')
 @UsePipes(
@@ -16,6 +17,19 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly refreshService: RefreshService,
   ) {}
+
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  async googleAuth(@Req() _req: any) {
+    // initiates the Google OAuth2 login flow
+  }
+
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  async googleAuthRedirect(@Req() req: any) {
+    const user = req.user;
+    return this.authService.login(user);
+  }
 
   @Post('signin')
   async signIn(

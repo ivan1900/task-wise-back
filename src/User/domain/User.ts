@@ -10,6 +10,7 @@ interface Props {
   password: UserPassword;
   isActive: UserIsActive;
   uuid: UserUuid;
+  googleId?: string;
 }
 
 export default class User {
@@ -18,6 +19,7 @@ export default class User {
   private password: UserPassword;
   private isActive: UserIsActive;
   private uuid: UserUuid;
+  private googleId?: string;
 
   constructor(props: Props) {
     this.id = props.id;
@@ -25,6 +27,7 @@ export default class User {
     this.password = props.password;
     this.isActive = props.isActive;
     this.uuid = props.uuid;
+    this.googleId = props.googleId;
   }
 
   static create(props: Props): User {
@@ -37,6 +40,7 @@ export default class User {
     password: string;
     isActive: boolean;
     uuid: string;
+    googleId?: string | null;
   }): User {
     return new User({
       id: new UserId(Number(primitives.id)),
@@ -44,6 +48,7 @@ export default class User {
       password: new UserPassword(primitives.password),
       isActive: new UserIsActive(primitives.isActive),
       uuid: new UserUuid(primitives.uuid),
+      googleId: primitives.googleId || undefined,
     });
   }
 
@@ -54,6 +59,11 @@ export default class User {
       password: this.password.value,
       isActive: this.isActive.value,
       uuid: this.uuid.value,
+      googleId: this.googleId,
     };
+  }
+
+  get GoogleId(): string | undefined {
+    return this.googleId;
   }
 }
