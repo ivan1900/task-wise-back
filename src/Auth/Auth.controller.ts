@@ -1,10 +1,21 @@
-import { Body, Controller, Logger, Post, UsePipes, ValidationPipe, Get, UseGuards, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Logger,
+  Post,
+  UsePipes,
+  ValidationPipe,
+  Get,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { SignInDto } from './application/dto/Signin.dto';
 import { ApiResponse } from 'src/Shared/application/dto/ApiResponse';
 import { AuthService } from './application/Auth.service';
 import { RefreshService } from './application/Refresh.service';
 import { RefreshTokenDto } from './application/dto/RefreshToken.dto';
 import { AuthGuard } from '@nestjs/passport';
+import type { GoogleReq } from 'src/Shared/domain/googleAuth/types';
 
 @Controller('auth')
 @UsePipes(
@@ -20,13 +31,14 @@ export class AuthController {
 
   @Get('google')
   @UseGuards(AuthGuard('google'))
-  async googleAuth(@Req() _req: any) {
+  googleAuth(@Req() _req: GoogleReq) {
+    this.logger.log('Google auth initiated', _req);
     // initiates the Google OAuth2 login flow
   }
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  async googleAuthRedirect(@Req() req: any) {
+  async googleAuthRedirect(@Req() req: GoogleReq) {
     const user = req.user;
     return this.authService.login(user);
   }

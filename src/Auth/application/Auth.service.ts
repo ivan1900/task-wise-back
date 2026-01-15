@@ -6,6 +6,8 @@ import Session from '../domain/session';
 import { UserWasLoggedEvent } from 'src/Shared/domain/events/UserWasLogged.event';
 import { EventBus } from 'src/Shared/domain/EventBus';
 import { UserCreator } from 'src/User/application/UserCreator.service';
+import { UserResponseDto } from 'src/User/application/dto/UserResponse.dto';
+import { GoogleUser } from 'src/Shared/domain/googleAuth/types';
 
 @Injectable()
 export class AuthService {
@@ -32,7 +34,7 @@ export class AuthService {
     email: string;
     googleId: string;
     name: string;
-  }): Promise<any> {
+  }): Promise<UserResponseDto> {
     let user = await this.userFinder.byEmail(profile.email);
 
     if (!user) {
@@ -42,7 +44,7 @@ export class AuthService {
     return user;
   }
 
-  async login(user: any): Promise<{ access_token: string; refresh_token: string }> {
+  async login(user: GoogleUser): Promise<{ access_token: string; refresh_token: string }> {
     return this.generateTokensAndSession(Number(user.id), user.email);
   }
 
